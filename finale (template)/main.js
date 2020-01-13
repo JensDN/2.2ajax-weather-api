@@ -1,13 +1,9 @@
-import {appKey} from "./js/token";
-import {hideOutPut} from "./js/show-hide";
-
 let setTemp = document.getElementById("set-temp");
 document.querySelector('#searchFrom').addEventListener("submit", getWeather);
+const city = document.querySelectr("#cityInput").value;
+const APIKEY = `7cc1ee386cd2f6106824b2347a6a0b17`;
 
 async function getWeather(e) {
-    const city = document.querySelectr("#cityInput").value;
-    const APIKEY = `7cc1ee386cd2f6106824b2347a6a0b17`;
-
     const url = `http://api.openweathermap.org/data/2.5/weather?q=${city}&APPID=${APIKEY}`;
     hideOutPut();
 
@@ -21,7 +17,6 @@ async function getWeather(e) {
     clearInput();
     e.preventDefault();
 }
-
 async  function getWeatherWeek(city) {
     const baseEndpoint =  `https://api.openweathermap.org/data/2.5/forecast`;
     const urlForecast = `${baseEndpoint}?q=${city}$APPID=${APIKEY}`;
@@ -31,11 +26,15 @@ async  function getWeatherWeek(city) {
         );
     setInterval( function() {showOutPut();} , 500);
 }
-let icon = document.querySelector("#icon-div");
-
-
- function getWeatherToday(data) {
-     icon.innerHTml = `
+function cityCase(str) {
+    return str
+        .split(" ")
+        .map(word => word[0].toUpperCase() + word.substring(1))
+        .join(" ");
+}
+function getWeatherToday(data) {
+    let icon = document.querySelector("#icon-div");
+     icon.innerHTML = `
     <i class="icon ${selectIcon(data.weather[0].icon)}"/>
     <h2 class=""active" href="#" id="fahrenheit">
         ${fahrenheit(data.main.temp)}°F | 
@@ -48,8 +47,6 @@ let icon = document.querySelector("#icon-div");
     </h3>
     <br>
     `;
-
-
      let details = document.querySelector("#details-div");
      details.innerHTML = `
  <h2> ]{data.name}, ${data.sys.country} </h2>
@@ -59,4 +56,31 @@ let icon = document.querySelector("#icon-div");
     <h3>${cityCase(data.weather[0].description)}</h3>
 </section>
  `;
- }
+}
+function clearInput() {
+    document.getElementById("searchForm").reset();
+}
+function getDateHour() {
+    let now = new Date();
+    let nameDay = [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday"
+    ];
+    function getMinutes(time) {
+        // This is to have always a zero.
+        return ("0" + time.getMinutes()).slice(-2);
+    }
+    return `${nameDay[now.getDay()]}${now.getHours()}:${getMinutes(now)}`;
+}
+function celsius(tempKelvin) {
+    return Math.round( tempKelvin - 273.15)
+}
+function fahrenheit(tempKelvin) {
+    return Math.round((tempKelvin -283.15) * 1.8 +32);
+}
+// faracast-fahrenheit.js daar zit ik nu
