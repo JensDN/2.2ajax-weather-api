@@ -1,27 +1,67 @@
-const APIKEY = `7cc1ee386cd2f6106824b2347a6a0b17`;
-const baseEndpoint =  `api.openweathermap.org`;
-const forecast5Endpoint = `/data/2.5/forecast`;
-let cityName ="Brussels";
-let countryCode=""; // needs an , after cityname. Works without an countrycode
-let cityID="";
-let lat="";
-let lon="";
-let zipCode="";
 
-const byCityNameEndpoint = `${baseEndpoint}${forecast5Endpoint}?q=${cityName}${countryCode}&APPID=${APIKEY}`;
-const byCityIDEndPoint = `${baseEndpoint}${forecast5Endpoint}?id=${cityID}&APPID=${APIKEY}`;
-const byGeographicCoordinatesEndpoint = `${baseEndpoint}${forecast5Endpoint}?lat=${lat}&Lon=${lon}&APPID=${APIKEY}`;
-const byZIPCodeEndpoint = `${baseEndpoint}${forecast5Endpoint}?zip=${zipCode},${countryCode}&APPID=${APIKEY}`;
-
+const APIKEY = `&appid=7cc1ee386cd2f6106824b2347a6a0b17`;
+const baseEndpoint =  `https://api.openweathermap.org/data/2.5/forecast`;
+const input = document.querySelector('#input');
+const form = document.querySelector('form');
+const weatherOutput = document.querySelector('#resultaten');
+const language = 'nl';
 function handelError (err) {
     console.log("Oh No,");
     console.log(err);
 }
-async function fetchDataWeather (query, city, countryCode) {
-    cityName = city;
-    const res = await fetch(query);
-    console.log(res);
+
+async function fetchDataWeather (city) {
+    const res = await fetch(`${baseEndpoint}?q=${city}${APIKEY}`);
     const data =  await res.json();
-    console.log(data)
+    console.log(data);
+    return data;
 }
-fetchDataWeather(byCityNameEndpoint, "London");
+
+function displayForecast(day, min, max) {
+    return `
+    <div class="flexEl">
+      <p>${day}</p>
+      <ul>
+        <li>min: ${min}</li>
+        <li>max: ${max}</li>
+      </ul>
+    </div>
+  `
+}
+
+async function avgTempByDay(data) {
+    const info = await data;
+    const tempAvg = {};
+    Object.entries(info.list).map(el => {
+        const date = new Date(el[1].dt_txt.split(' ')[0]).toLocaleString(language, { weekday :"long", month: "long", day: "numeric"  });
+        const minTemp = Math.floor((el[1].main.temp_min - 273) * 10) /10;
+        const maxTemp = Math.floor((el[1].main.temp_max - 273) * 10) /10;
+        if(!tempAvg[date]) {
+            tempAvg[date] = {min: minTemp, max: maxTemp};
+        }
+        if(minTemp < tempAvg[date].min){
+            tempAvg[date].min = minTemp;
+        }
+        if(maxTemp > tempAvg[date].max){
+            tempAvg[date].max = maxTemp;
+        }
+    });
+    console.log(tempAvg);
+    return tempAvg;
+}
+
+async function handleClick(e) {
+    e.preventDefault();
+    const city = input.value;
+    const obj = await avgTempByDay(fetchDataWeather(city));
+    console.log(Object.entries(obj));
+    let HTML = '';
+    Object.entries(obj).map(el => {
+        HTML += displayForecast(el[0], el[1].min, el[1].max);
+    });
+
+    weatherOutput.innerHTML = HTML;
+}
+
+form.addEventListener('submit', handleClick);
+
