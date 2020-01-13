@@ -20,8 +20,8 @@ async function fetchDataWeather (city) {
 function displayForecast(day, min, max) {
     return `
     <div class="flexEl">
-      <p>${day}</p>
-      <ul>
+      <p class="day">${day}</p>
+      <ul class="temptable">
         <li>min: ${min}</li>
         <li>max: ${max}</li>
       </ul>
@@ -32,10 +32,11 @@ function displayForecast(day, min, max) {
 async function avgTempByDay(data) {
     const info = await data;
     const tempAvg = {};
-    Object.entries(info.list).map(el => {
-        const date = new Date(el[1].dt_txt.split(' ')[0]).toLocaleString(language, { weekday :"long", month: "long", day: "numeric"  });
-        const minTemp = Math.floor((el[1].main.temp_min - 273) * 10) /10;
-        const maxTemp = Math.floor((el[1].main.temp_max - 273) * 10) /10;
+    info.list.map(el => {
+        const date = new Date(el.dt_txt.split(' ')[0]).toLocaleString(language, { weekday :"long", month: "long", day: "numeric"  });
+
+        const minTemp = Math.floor((el.main.temp_min - 273) * 10) /10;
+        const maxTemp = Math.floor((el.main.temp_max - 273) * 10) /10;
         if(!tempAvg[date]) {
             tempAvg[date] = {min: minTemp, max: maxTemp};
         }
@@ -45,7 +46,9 @@ async function avgTempByDay(data) {
         if(maxTemp > tempAvg[date].max){
             tempAvg[date].max = maxTemp;
         }
+
     });
+
     console.log(tempAvg);
     return tempAvg;
 }
